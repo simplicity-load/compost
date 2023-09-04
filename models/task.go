@@ -4,6 +4,6 @@ type Task struct {
 	Id     int    `json:"id"`
 	UserId int    `json:"-"`
 	Title  string `json:"title"`
-	Body   string `json:"desc"`
+	Body   string `json:"body"`
 	Status string `json:"status"`
 }

@@ -1,7 +1,8 @@
 package database
 
 import (
-	"fiber-proj1/models"
+	"compost/models"
+	// "time"
 
 	"database/sql"
 	_ "embed"
@@ -49,10 +50,14 @@ func Connect() (*DBAct, error) {
 
 func (a *DBAct) GetAllTasksForUser(userId int) ([]models.Task, error) {
 	tasks := make([]models.Task, 0, 100)
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	//a.mu.Lock()
+	//defer a.mu.Unlock()
+	// bench := time.Now()
+	//rows, err := a.db.Query(get_all_tasks_for_userId, userId)
 	rows, err := a.db.Query(get_all_tasks_for_userId, userId)
 	defer rows.Close()
+	// log.Printf(">> Time after query: %v", time.Now().Sub(bench))
+	// bench = time.Now()
 	if err != nil {
 		log.Printf("Failed to select rows\nErr: %v", err)
 		return nil, err
@@ -72,13 +77,25 @@ func (a *DBAct) GetAllTasksForUser(userId int) ([]models.Task, error) {
 		}
 		tasks = append(tasks, task)
 	}
+	// log.Printf(">> Time after process rows: %v", time.Now().Sub(bench))
 
 	return tasks, nil
 }
 
+func (a *DBAct) GetUserById(userId int) (username string, err error) {
+	//a.mu.Lock()
+	//defer a.mu.Unlock()
+	row := a.db.QueryRow(get_username_from_userId, userId)
+	if err = row.Scan(&username); err == sql.ErrNoRows {
+		log.Printf("Username not found %v, %v, %v", username, username, "jnig" == username)
+		return "", err
+	}
+	return username, nil
+}
+
 func (a *DBAct) GetUserByString(username string) (id int, err error) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	//a.mu.Lock()
+	//defer a.mu.Unlock()
 	row := a.db.QueryRow(get_userId_from_username, username)
 	if err = row.Scan(&id); err == sql.ErrNoRows {
 		log.Printf("Id not found %v, %v, %v", id, username, "jnig" == username)
@@ -109,12 +126,12 @@ func (a *DBAct) taskExistsByID(task *models.Task) (bool, error) {
 
 func (a *DBAct) taskExistsByStatus(task *models.Task) bool {
 	// TODO change from str "del" to enum or smth
-  return task.Status != "del"
+	return task.Status != "del"
 }
 
 func (a *DBAct) SaveOrEditTask(task models.Task) error {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	//a.mu.Lock()
+	//defer a.mu.Unlock()
 
 	var retrievedTask models.Task
 	retrievedTask.Id = task.Id
@@ -156,8 +173,8 @@ func (a *DBAct) SaveOrEditTask(task models.Task) error {
 }
 
 func (a *DBAct) DeleteTask(id int, userId int) error {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	//a.mu.Lock()
+	//defer a.mu.Unlock()
 
 	var retrievedTask models.Task
 	retrievedTask.Id = id
@@ -187,8 +204,8 @@ func (a *DBAct) DeleteTask(id int, userId int) error {
 }
 
 func (a *DBAct) GetTask(id int, userId int) (*models.Task, error) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	//a.mu.Lock()
+	//defer a.mu.Unlock()
 
 	var retrievedTask models.Task
 	retrievedTask.Id = id

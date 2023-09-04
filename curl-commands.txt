@@ -4,22 +4,22 @@ curl -v -X POST -s localhost:8080/api/login \
     '{"username":<user>}'
 
 # POST A TASK
-curl -v -X POST -s localhost:8080/api/task \
+curl -v -X POST -s localhost:8080/api/note \
     -H 'Content-Type: application/json' \
     --cookie 'nts-cookie=<cookie>' \
     -d '{"id":4,"title":"ouhhhh 3","desc":"whooo im lelling here here","status":"public"}'
 
 # GET ALL TASKS
-curl -s localhost:8080/api/task \
+curl -s localhost:8080/api/note \
     -H 'Content-Type: application/json' \
     --cookie 'nts-cookie=<cookie>'
 
 # GET TASK BY ID
-curl -v -X GET -s localhost:8080/api/task/<task-id> \
+curl -v -X GET -s localhost:8080/api/note/<note-id> \
     -H 'Content-Type: application/json' \
     --cookie 'nts-cookie=<cookie>'
 
 # DELETE TASK BY ID
-curl -v -X POST -s localhost:8080/api/task/<task-id> \
+curl -v -X POST -s localhost:8080/api/note/<note-id> \
     -H 'Content-Type: application/json' \
     --cookie 'nts-cookie=<cookie>'

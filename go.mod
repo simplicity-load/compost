@@ -1,4 +1,4 @@
-module fiber-proj1
+module compost
 
 go 1.20
 

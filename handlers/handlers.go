@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"fiber-proj1/database"
-	"fiber-proj1/models"
+	"compost/database"
+	"compost/models"
 	"strconv"
 
 	"log"
@@ -29,6 +29,32 @@ func InitDatasources() error {
 	}
 	log.Println(bench.Sub(time.Now()))
 	return nil
+}
+
+func Account(c *fiber.Ctx) error {
+	session, err := loggedInSession(c)
+	if err != nil {
+		return err
+	}
+
+	userId := session.Get("u").(int)
+	username, err := db.GetUserById(userId)
+	if err != nil {
+		// User does not exist
+		return fiber.ErrNotFound
+	}
+	log.Printf("User %v, logged in", username)
+
+	req := struct {
+		Username string `json:"username"`
+	}{}
+	req.Username = username
+
+	err = extendAndSaveSession(session)
+	if err != nil {
+		return err
+	}
+	return c.JSON(req)
 }
 
 func Login(c *fiber.Ctx) error {
@@ -65,8 +91,9 @@ func Login(c *fiber.Ctx) error {
 	return c.JSON(nil)
 }
 
+// The two functions below are expensive since actions on store are somehow expensive?
 func loggedInSession(c *fiber.Ctx) (*session.Session, error) {
-	session, err := store.Get(c)
+	session, err := store.Get(c) // Expensive ~ 1ms - 1.5ms
 	if err != nil {
 		return nil, fiber.ErrInternalServerError
 	}
@@ -78,30 +105,43 @@ func loggedInSession(c *fiber.Ctx) (*session.Session, error) {
 }
 
 func extendAndSaveSession(session *session.Session) error {
+	// bench := time.Now()
 	session.SetExpiry(time.Minute * database.COOKIE_LIFESPAN)
-	if err := session.Save(); err != nil {
+	// log.Printf(">> Time after setExpiry: %v", time.Now().Sub(bench))
+	// bench = time.Now()
+	if err := session.Save(); err != nil { // Super Expensive ~ 9ms
 		log.Printf("Failed to save cookie %v", session)
 		return fiber.ErrInternalServerError
 	}
+	// log.Printf(">> Time after Save: %v", time.Now().Sub(bench))
 	return nil
 }
 
 func GetTasks(c *fiber.Ctx) error {
+	// bench := time.Now()
 	session, err := loggedInSession(c)
 	if err != nil {
 		return err
 	}
+	// log.Printf("Time after loggedInSession: %v", time.Now().Sub(bench))
+	// bench = time.Now()
 
 	userId := session.Get("u").(int)
+	// log.Printf("Time after Get(\"u\"): %v", time.Now().Sub(bench))
+	// bench = time.Now()
 	tasks, err := db.GetAllTasksForUser(userId)
 	if err != nil {
 		log.Printf("Failed getting tasks for user: %v", userId)
 		return fiber.ErrInternalServerError
 	}
+	// log.Printf("Time after getTasks: %v", time.Now().Sub(bench))
+	// bench = time.Now()
 	err = extendAndSaveSession(session)
 	if err != nil {
 		return err
 	}
+	// log.Printf("Time after getTasks: %v", time.Now().Sub(bench))
+	// bench = time.Now()
 	return c.JSON(tasks)
 }
 
